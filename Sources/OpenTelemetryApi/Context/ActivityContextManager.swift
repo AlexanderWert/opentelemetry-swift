@@ -70,16 +70,15 @@ class ActivityContextManager: ContextManager {
 
     func removeContextValue(forKey key: OpenTelemetryContextKeys, value: AnyObject) {
         var parentIdent: os_activity_id_t = 0
-        let activityIdent = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
         
         if let scope = objectScope.object(forKey: value) {
             var scope = scope.scope
+            let activityIdent = scope.opaque[0]
             os_activity_scope_leave(&scope)
             objectScope.removeObject(forKey: value)
-        }
-        
-        if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] != nil {
-            contextMap[activityIdent] = nil
+            if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] == value {
+                contextMap[activityIdent] = nil
+            }
         }
     }
 }

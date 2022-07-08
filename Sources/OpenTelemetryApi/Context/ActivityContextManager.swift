@@ -73,10 +73,10 @@ class ActivityContextManager: ContextManager {
         
         if let scope = objectScope.object(forKey: value) {
             var scope = scope.scope
-            let activityIdent = scope.opaque[0]
+            let activityIdent = scope.opaque.0
             os_activity_scope_leave(&scope)
             objectScope.removeObject(forKey: value)
-            if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] == value {
+            if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] === value {
                 contextMap[activityIdent] = nil
             }
         }

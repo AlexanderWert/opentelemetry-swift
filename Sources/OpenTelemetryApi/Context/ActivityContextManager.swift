@@ -16,7 +16,6 @@ private let OS_ACTIVITY_CURRENT = unsafeBitCast(dlsym(UnsafeMutableRawPointer(bi
 
 class ActivityContextManager: ContextManager {
     static let instance = ActivityContextManager()
-    private let opaque: AnyObject
     
     
     let rlock = NSRecursiveLock()

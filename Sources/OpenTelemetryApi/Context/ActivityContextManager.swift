@@ -78,9 +78,9 @@ class ActivityContextManager: ContextManager {
             let activityIdent = scope.opaque.0
             
             let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
-            UnsafeRawPointer(bitPattern: Int(scope.opaque.0)).map(Unmanaged<AnyObject>.fromOpaque)?.release()
-            os_activity_end(OS_ACTIVITY_CURRENT)
-            os_activity_scope_leave(&scope)
+            if (OS_ACTIVITY_OBJECT_API != 0) {
+                os_activity_scope_leave(&scope)
+            }
             let currentAfter = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
             objectScope.removeObject(forKey: value)
             //if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] === value {

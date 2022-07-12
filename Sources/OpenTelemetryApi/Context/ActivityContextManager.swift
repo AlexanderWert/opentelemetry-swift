@@ -78,6 +78,7 @@ class ActivityContextManager: ContextManager {
             let activityIdent = scope.opaque.0
             
             let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
+            os_activity_end(OS_ACTIVITY_CURRENT)
             os_activity_scope_leave(&scope)
             let currentAfter = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
             objectScope.removeObject(forKey: value)

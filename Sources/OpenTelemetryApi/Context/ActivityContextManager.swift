@@ -61,6 +61,7 @@ class ActivityContextManager: ContextManager {
 
     func createActivityContext() -> (os_activity_id_t, os_activity_scope_state_s) {
         let dso = UnsafeMutableRawPointer(mutating: #dsohandle)
+        var parentIdent: os_activity_id_t = 0
         let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
         let activity = _os_activity_create(dso, "ActivityContext", OS_ACTIVITY_CURRENT, OS_ACTIVITY_FLAG_DEFAULT)
         let currentActivityId = os_activity_get_identifier(activity, nil)

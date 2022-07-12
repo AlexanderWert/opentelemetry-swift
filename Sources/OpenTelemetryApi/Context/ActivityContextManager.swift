@@ -16,7 +16,9 @@ private let OS_ACTIVITY_CURRENT = unsafeBitCast(dlsym(UnsafeMutableRawPointer(bi
 
 class ActivityContextManager: ContextManager {
     static let instance = ActivityContextManager()
-
+    private let opaque: AnyObject
+    
+    
     let rlock = NSRecursiveLock()
 
     class ScopeElement {
@@ -61,8 +63,7 @@ class ActivityContextManager: ContextManager {
 
     func createActivityContext() -> (os_activity_id_t, os_activity_scope_state_s) {
         let dso = UnsafeMutableRawPointer(mutating: #dsohandle)
-        var parentIdent: os_activity_id_t = 0
-        let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
+        let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, nil)
         let activity = _os_activity_create(dso, "ActivityContext", OS_ACTIVITY_CURRENT, OS_ACTIVITY_FLAG_DEFAULT)
         let currentActivityId = os_activity_get_identifier(activity, nil)
         var activityState = os_activity_scope_state_s()
@@ -76,12 +77,17 @@ class ActivityContextManager: ContextManager {
         if let scope = objectScope.object(forKey: value) {
             var scope = scope.scope
             let activityIdent = scope.opaque.0
-            
+            print("#---# Ident: \(activityIdent)")
             let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
             if (OS_ACTIVITY_OBJECT_API != 0) {
                 os_activity_scope_leave(&scope)
             }
             let currentAfter = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
+            if(currentBefore != 0 && currentAfter == currentBefore){
+                print("#---# Ident: \(activityIdent)")
+                
+            }
+            
             objectScope.removeObject(forKey: value)
             //if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] === value {
             //    contextMap[activityIdent] = nil

@@ -76,14 +76,12 @@ class ActivityContextManager: ContextManager {
         if let scope = objectScope.object(forKey: value) {
             var scope = scope.scope
             let activityIdent = scope.opaque.0
-            print("#---# Ident: \(activityIdent)")
             let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
             if (OS_ACTIVITY_OBJECT_API != 0) {
                 os_activity_scope_leave(&scope)
             }
-            let currentAfter = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
-            if(currentBefore != 0 && currentAfter == currentBefore){
-                print("#---# Ident: \(activityIdent)")
+            if(currentBefore != activityIdent){
+                print("#---# Leaving scope for non-current: \(activityIdent)  -  current: \(currentBefore)\n")
                 
             }
             

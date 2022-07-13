@@ -56,6 +56,8 @@ class ActivityContextManager: ContextManager {
             activityState.opaque.0 = activityIdent
             os_activity_scope_leave(&activityState)
             let afterIdent = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
+            
+            print("#### afterIdent: \(afterIdent)")
         }
         if contextMap[activityIdent] == nil || contextMap[activityIdent]?[key.rawValue] != nil {
             var scope: os_activity_scope_state_s

@@ -51,6 +51,10 @@ class ActivityContextManager: ContextManager {
         var parentIdent: os_activity_id_t = 0
         var activityIdent = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
         rlock.lock()
+        if(activityIdent != 0 && (value as! RecordEventsReadableSpan).parentContext == nil){
+            var activityState = os_activity_scope_state_s()
+            os_activity_scope_leave(&activityState)
+        }
         if contextMap[activityIdent] == nil || contextMap[activityIdent]?[key.rawValue] != nil {
             var scope: os_activity_scope_state_s
             if((value as! RecordEventsReadableSpan).parentContext == nil){

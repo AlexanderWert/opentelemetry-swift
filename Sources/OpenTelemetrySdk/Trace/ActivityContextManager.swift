@@ -5,6 +5,7 @@
 
 import Foundation
 import os.activity
+import OpenTelemetryApi
 
 // Bridging Obj-C variabled defined as c-macroses. See `activity.h` header.
 private let OS_ACTIVITY_CURRENT = unsafeBitCast(dlsym(UnsafeMutableRawPointer(bitPattern: -2), "_os_activity_current"),
@@ -30,7 +31,7 @@ class ActivityContextManager: ContextManager {
 
     var objectScope = NSMapTable<AnyObject, ScopeElement>(keyOptions: .weakMemory, valueOptions: .strongMemory)
 
-    var contextMap = [os_activity_id_t: [String: AnyObject]]()
+    var contextMap = [os_activity_id_t: [String: Stack]]()
 
     func getCurrentContextValue(forKey key: OpenTelemetryContextKeys) -> AnyObject? {
         var parentIdent: os_activity_id_t = 0
@@ -41,7 +42,7 @@ class ActivityContextManager: ContextManager {
             rlock.unlock()
             return nil
         }
-        contextValue = context[key.rawValue]
+        contextValue = context[key.rawValue]?.peek()
         rlock.unlock()
         return contextValue
     }
@@ -52,11 +53,13 @@ class ActivityContextManager: ContextManager {
         rlock.lock()
         if contextMap[activityIdent] == nil || contextMap[activityIdent]?[key.rawValue] != nil {
             var scope: os_activity_scope_state_s
-            (activityIdent, scope) = createActivityContext()
-            contextMap[activityIdent] = [String: AnyObject]()
-            objectScope.setObject(ScopeElement(scope: scope), forKey: value)
+            if((value as! RecordEventsReadableSpan).parentContext == nil){
+                (activityIdent, scope) = createActivityContext()
+                objectScope.setObject(ScopeElement(scope: scope), forKey: value)
+            }
+            contextMap[activityIdent] = [String: Stack]()
         }
-        contextMap[activityIdent]?[key.rawValue] = value
+        contextMap[activityIdent]?[key.rawValue]?.push(value)
         rlock.unlock()
     }
 
@@ -76,19 +79,18 @@ class ActivityContextManager: ContextManager {
         if let scope = objectScope.object(forKey: value) {
             var scope = scope.scope
             let activityIdent = scope.opaque.0
-            let currentBefore = os_activity_get_identifier(OS_ACTIVITY_CURRENT, &parentIdent)
-            if (OS_ACTIVITY_OBJECT_API != 0) {
+            
+            if((value as! RecordEventsReadableSpan).parentContext == nil){
+                contextMap.removeValue(forKey: activityIdent)
                 os_activity_scope_leave(&scope)
-            }
-            if(currentBefore != activityIdent){
-                print("#---# Leaving scope for non-current: \(activityIdent)  -  current: \(currentBefore)\n")
-                
+            } else if(contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] != nil) {
+                let currentContext = contextMap[activityIdent]?[key.rawValue]?.peek()
+                if((currentContext as! Span).context.spanId == (value as! Span).context.spanId){
+                    contextMap[activityIdent]?[key.rawValue]?.pop()
+                }
             }
             
             objectScope.removeObject(forKey: value)
-            //if contextMap[activityIdent] != nil && contextMap[activityIdent]?[key.rawValue] === value {
-            //    contextMap[activityIdent] = nil
-            //}
         }
     }
 }

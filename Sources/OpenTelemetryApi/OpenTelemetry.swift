@@ -30,7 +30,7 @@ public struct OpenTelemetry {
         tracerProvider = DefaultTracerProvider.instance
         meterProvider = DefaultMeterProvider.instance
         baggageManager = DefaultBaggageManager.instance
-        contextProvider = OpenTelemetryContextProvider(contextManager: ActivityContextManager.instance)
+        contextProvider = OpenTelemetryContextProvider(contextManager: DefaultContextManager.instance)
     }
 
     public static func registerTracerProvider(tracerProvider: TracerProvider) {

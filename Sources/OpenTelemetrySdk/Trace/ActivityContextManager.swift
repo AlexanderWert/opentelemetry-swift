@@ -67,6 +67,7 @@ class ActivityContextManager: ContextManager {
             }
             contextMap[activityIdent] = [String: Stack]()
         }
+        contextMap[activityIdent]?[key.rawValue] = Stack()
         contextMap[activityIdent]?[key.rawValue]?.push(value)
         let context = contextMap[activityIdent]
         let v = contextMap[activityIdent]?[key.rawValue]?.peek()
